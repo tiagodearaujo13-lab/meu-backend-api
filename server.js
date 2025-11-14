@@ -76,7 +76,7 @@ app.post('/registo', (req, res) => {
         }
         // 3. Codigo secreto O 'hash' vou usalo para guardar o password
         console.log("Password 'triturada'com sucesso:" , hash);
-        const sql = "INSED INTO utilizadores (email, password_hash) VALUE (?, ?)";
+        const sql = "INSERT INTO utilizadores (email, password_hash) VALUES (?, ?)";
 
         db.run(sql, [email ,hash], function(err) {
             if (err) {
@@ -94,5 +94,5 @@ app.post('/registo', (req, res) => {
 
 // 5. Ligar
 app.listen(port, () => {
-    console.log(`Servidor está ligado e a ouvir na porta http://localhost:&{port}`);
+    console.log(`Servidor está ligado e a ouvir na porta http://localhost:${port}`);
 });
