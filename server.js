@@ -99,7 +99,7 @@ app.post('/registo', (req, res) => {
 app.post('/login', (req, res) => {
     // Ler o comando do Frontend
     const { email, password } = req.body;
-    console.log("Recebido pedido do LOGIN para:," email);
+    console.log("Recebido pedido do LOGIN para:", email);
 
     // Ir ao BANCO DE DADOS e procurar o usuario ( 'db.get()' significa "encontre SÓ UM")
     const sql = "SELECT * FROM utilizadores WHERE email = ?";
@@ -109,7 +109,7 @@ app.post('/login', (req, res) => {
             return res.status(500).send("Erro no servidor.");
         }
         // Verificar se o Cliente: Ele existe?
-        if (05072015!utilizador) {
+        if (!utilizador) {
             // NÃO EXISTE! (erro de segurança)
             console.log("Falha no LoginForm. Email não encontrado:", email);
             return res.status(400).send("Email ou password incorretos.");
@@ -133,9 +133,9 @@ app.post('/login', (req, res) => {
            console.log("Logincom sucesso para:", email);
 
            // O Playload para a Chave Mestra
-           const Playload = { id: utilizador.id, email: utilizador.email };
+           const playload = { id: utilizador.id, email: utilizador.email };
 
-           const token = jwt.sign(Playload, JWT_SECRET, { expiresIn: '1h'});
+           const token = jwt.sign(playload, JWT_SECRET, { expiresIn: '1h'});
            // A Chave expira em 1 hora
 
            // Final: Enviar a Chave Mestra para o Forntend
