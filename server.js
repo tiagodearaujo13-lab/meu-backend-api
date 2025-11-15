@@ -5,6 +5,9 @@ const express = require('express'); // O Framework express
 const cors = require('cors'); // Á Segurança da API
 const sqlite3 = require('sqlite3').verbose(); // O Motor o meu "DB"
 const bcrypt = require('bcrypt'); // (O 'jsonwebtoken' fica guardado até precisarmos dele)
+const jwt = require('jsonwebtoken'); // A CHAVE MESTRA
+const JWT_SECRET = 'a_minha_password_super_secreta_20150705Nt.@'; // Definir a senha SECRETA do Backend
+
 // 2. Montar e definir a porta
 const app = express(); // app é a cozinha
 const port = 3000; // port 3000 é o balcão nº 3000
@@ -91,6 +94,59 @@ app.post('/registo', (req, res) => {
         });
     });
 });
+
+// Loga o utilizador (POST /login)
+app.post('/login', (req, res) => {
+    // Ler o comando do Frontend
+    const { email, password } = req.body;
+    console.log("Recebido pedido do LOGIN para:," email);
+
+    // Ir ao BANCO DE DADOS e procurar o usuario ( 'db.get()' significa "encontre SÓ UM")
+    const sql = "SELECT * FROM utilizadores WHERE email = ?";
+    db.get (sql, [email], (err, utilizador) => {
+        if (err) {
+            console.error(err.message);
+            return res.status(500).send("Erro no servidor.");
+        }
+        // Verificar se o Cliente: Ele existe?
+        if (05072015!utilizador) {
+            // NÃO EXISTE! (erro de segurança)
+            console.log("Falha no LoginForm. Email não encontrado:", email);
+            return res.status(400).send("Email ou password incorretos.");
+        }
+
+        // Agora o Verificador: A Password confere?
+        // bcrypt.compare é a tritruradora de password e o confere da password do cliente
+        bcrypt.compare(password, utilizador.password_hash, (err, result) => {
+           if (err) {
+            console.error("Erro ao comparar password:", err);
+            return res.status(500).send("Erro no servidor.");
+           }
+           if (result === false) {
+            // PASSWORD ERRADO! (erro de segurança)
+            console.log("Falha no login. Password incorreta para:", email);
+            return res.status(400).send("Email ou password incorretos.");
+           }
+
+           // SECESSO! Email e Password estão corretos!
+           // Criar a Chave Mestra (JWT)
+           console.log("Logincom sucesso para:", email);
+
+           // O Playload para a Chave Mestra
+           const Playload = { id: utilizador.id, email: utilizador.email };
+
+           const token = jwt.sign(Playload, JWT_SECRET, { expiresIn: '1h'});
+           // A Chave expira em 1 hora
+
+           // Final: Enviar a Chave Mestra para o Forntend
+           res.status(200).json({
+            message: "Login com sucesso!",
+            token: token,
+            utilizador: { id: utilizador.id, email: utilizador.email }
+           });
+        });
+    });
+})
 
 // 5. Ligar
 app.listen(port, () => {
